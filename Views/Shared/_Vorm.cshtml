@@ -1,0 +1,23 @@
+﻿@model FunktsiooniUurimine
+
+<div class="kaart" style="max-width: 600px;">
+    <form asp-action="@(Model.Id == 0 ? "Create" : "Edit")" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="Id" />
+
+        <div class="mb-3">
+            <label asp-for="Valem" class="form-label"></label>
+            <input asp-for="Valem" class="form-control" placeholder="nt x^3 - 3*x" />
+            <span asp-validation-for="Valem" class="text-danger"></span>
+        </div>
+
+        <div class="mb-4">
+            <label asp-for="Tuletis" class="form-label"></label>
+            <input asp-for="Tuletis" class="form-control" placeholder="nt 3*x^2 - 3 (tühi = arvutatakse ise)" />
+            <span asp-validation-for="Tuletis" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Salvesta</button>
+        <a asp-action="Index" class="btn btn-secondary">Tühista</a>
+    </form>
+</div>

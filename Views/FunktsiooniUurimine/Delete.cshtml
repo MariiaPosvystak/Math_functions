@@ -1,0 +1,15 @@
+﻿@model FunktsiooniUurimine
+@{
+    ViewData["Title"] = "Kustuta funktsioon";
+}
+
+<h1>Kas oled kindel, et soovid kustutada?</h1>
+
+<div class="kaart" style="max-width: 600px;">
+    <p>f(x) = <span class="valem-kood">@Model.Valem</span></p>
+    <form asp-action="Delete" method="post">
+        <input type="hidden" asp-for="Id" />
+        <button type="submit" class="btn btn-danger">Kustuta</button>
+        <a asp-action="Index" class="btn btn-secondary">Tühista</a>
+    </form>
+</div>

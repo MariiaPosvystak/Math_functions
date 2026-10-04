@@ -1,0 +1,41 @@
+﻿@model IEnumerable<FunktsiooniUurimine>
+@{
+    ViewData["Title"] = "Funktsioonide uurimine";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Salvestatud funktsioonid</h1>
+    <a asp-action="Create" class="btn btn-primary">+ Lisa uus funktsioon</a>
+</div>
+
+<div class="kaart tabel-kaart">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Valem</th>
+                    <th>Tuletis</th>
+                    <th>Nullkohad</th>
+                    <th>Ekstreemumid</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var olem in Model)
+                {
+                    <tr>
+                        <td><span class="valem-kood">@olem.Valem</span></td>
+                        <td>@olem.Tuletis</td>
+                        <td>@olem.Nullkohad</td>
+                        <td>@olem.Ekstreemumid</td>
+                        <td class="text-end text-nowrap">
+                            <a asp-action="Details" asp-route-id="@olem.Id">Vaata</a> ·
+                            <a asp-action="Edit" asp-route-id="@olem.Id">Muuda</a> ·
+                            <a asp-action="Delete" asp-route-id="@olem.Id">Kustuta</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

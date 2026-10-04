@@ -1,0 +1,162 @@
+:root {
+    --fon: #f5f7fb;
+    --kaart: #ffffff;
+    --tekst: #2d3748;
+    --hele-tekst: #718096;
+    --aktsent: #4f6df5;
+    --aktsent-tume: #3b55d9;
+    --joon: #e2e8f0;
+    --punane: #ef6461;
+}
+
+html {
+    font-size: 15px;
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    background: var(--fon);
+    color: var(--tekst);
+    margin-bottom: 60px;
+}
+.navbar-minu {
+    background: var(--kaart);
+    border-bottom: 1px solid var(--joon);
+    box-shadow: 0 1px 8px rgba(30, 41, 59, 0.05);
+}
+
+    .navbar-minu .navbar-brand {
+        font-weight: 700;
+        color: var(--aktsent);
+    }
+
+    .navbar-minu .nav-link {
+        color: var(--tekst);
+        font-weight: 500;
+    }
+
+        .navbar-minu .nav-link:hover {
+            color: var(--aktsent);
+        }
+
+h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 1.2rem;
+}
+.kaart {
+    background: var(--kaart);
+    border: 1px solid var(--joon);
+    border-radius: 14px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 16px rgba(30, 41, 59, 0.05);
+    margin-bottom: 1.5rem;
+}
+.btn {
+    border-radius: 10px;
+    font-weight: 500;
+    padding: 0.5rem 1.1rem;
+}
+
+.btn-primary {
+    background: var(--aktsent);
+    border-color: var(--aktsent);
+}
+
+    .btn-primary:hover,
+    .btn-primary:focus {
+        background: var(--aktsent-tume);
+        border-color: var(--aktsent-tume);
+    }
+
+.btn-secondary {
+    background: #edf2f7;
+    border-color: #edf2f7;
+    color: var(--tekst);
+}
+
+    .btn-secondary:hover {
+        background: #e2e8f0;
+        border-color: #e2e8f0;
+        color: var(--tekst);
+    }
+
+.btn-danger {
+    background: var(--punane);
+    border-color: var(--punane);
+}
+
+.form-control {
+    border-radius: 10px;
+    border: 1px solid var(--joon);
+    padding: 0.6rem 0.9rem;
+}
+
+    .form-control:focus {
+        border-color: var(--aktsent);
+        box-shadow: 0 0 0 0.2rem rgba(79, 109, 245, 0.15);
+    }
+
+.form-label {
+    font-weight: 500;
+    color: var(--hele-tekst);
+    font-size: 0.9rem;
+}
+
+.tabel-kaart {
+    padding: 0.5rem 1rem;
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+    .table thead th {
+        color: var(--hele-tekst);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        border-bottom: 2px solid var(--joon);
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+.valem-kood {
+    font-family: Consolas, 'Courier New', monospace;
+    background: #eef2ff;
+    color: var(--aktsent-tume);
+    padding: 0.15rem 0.5rem;
+    border-radius: 6px;
+}
+a {
+    color: var(--aktsent);
+    text-decoration: none;
+}
+
+    a:hover {
+        color: var(--aktsent-tume);
+    }
+
+dt {
+    color: var(--hele-tekst);
+    font-weight: 500;
+}
+
+dd {
+    margin-bottom: 0.6rem;
+}
+
+.graafiku-kast {
+    position: relative;
+    height: 420px;
+}
+
+.footer {
+    background: transparent;
+    color: var(--hele-tekst);
+    border-top: 1px solid var(--joon);
+}

@@ -1,0 +1,135 @@
+﻿@model FunktsiooniUurimine
+@{
+    ViewData["Title"] = "Funktsiooni detailid";
+}
+
+<h1>f(x) = <span class="valem-kood">@Model.Valem</span></h1>
+
+<div class="kaart">
+    <dl class="row mb-0">
+        <dt class="col-sm-3">Tuletis f'(x)</dt>
+        <dd class="col-sm-9">@Model.Tuletis</dd>
+        <dt class="col-sm-3">Määramispiirkond</dt>
+        <dd class="col-sm-9">@Model.Maaramispiirkond</dd>
+        <dt class="col-sm-3">Nullkohad</dt>
+        <dd class="col-sm-9">@Model.Nullkohad</dd>
+        <dt class="col-sm-3">Kriitilised punktid</dt>
+        <dd class="col-sm-9">@Model.KriitilisedPunktid</dd>
+        <dt class="col-sm-3">Ekstreemumid</dt>
+        <dd class="col-sm-9">@Model.Ekstreemumid</dd>
+        <dt class="col-sm-3">Loodud</dt>
+        <dd class="col-sm-9">@Model.LuodudAeg.ToLocalTime()</dd>
+    </dl>
+</div>
+
+<div class="kaart">
+    <div class="row g-2 mb-3">
+        <div class="col-auto">
+            <label class="form-label">x algus</label>
+            <input id="xAlgus" type="number" step="any" value="-5" class="form-control" />
+        </div>
+        <div class="col-auto">
+            <label class="form-label">x lõpp</label>
+            <input id="xLopp" type="number" step="any" value="5" class="form-control" />
+        </div>
+        <div class="col-auto">
+            <label class="form-label">samm</label>
+            <input id="xSamm" type="number" step="any" value="0.1" class="form-control" />
+        </div>
+        <div class="col-auto align-self-end">
+            <button id="joonistaNupp" type="button" class="btn btn-primary">Joonista</button>
+        </div>
+    </div>
+
+    <div class="graafiku-kast">
+        <canvas id="funktsiooniGraafik"></canvas>
+    </div>
+</div>
+
+<p>
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-secondary">Muuda</a>
+    <a asp-action="Index" class="btn btn-secondary">Tagasi nimekirja</a>
+</p>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const andmeUrl = '@Url.Action("Punktid", new { id = Model.Id })';
+        const valem = @Html.Raw(Json.Serialize(Model.Valem));
+        let graafik = null;
+
+        async function joonistaGraafik() {
+        const algus = parseFloat(document.getElementById('xAlgus').value);
+        const lopp = parseFloat(document.getElementById('xLopp').value);
+        const samm = parseFloat(document.getElementById('xSamm').value);
+
+        if (isNaN(algus) || isNaN(lopp) || isNaN(samm) || samm <= 0 || lopp <= algus) {
+        alert('Kontrolli vahemikku ja sammu!');
+        return;
+        }
+
+        const xVaartused = [];
+        const punkte = Math.round((lopp - algus) / samm);
+        for (let i = 0; i <= punkte; i++) {
+        xVaartused.push(Math.round((algus + i * samm) * 1000000) / 1000000);
+        }
+
+        const vastus = await fetch(andmeUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(xVaartused)
+        });
+
+        if (!vastus.ok) {
+        alert('Graafiku andmete laadimine ebaõnnestus: ' + await vastus.text());
+        return;
+        }
+
+        const andmed = await vastus.json();
+
+        if (graafik) {
+        graafik.destroy();
+        }
+
+        const lõuend = document.getElementById('funktsiooniGraafik').getContext('2d');
+        graafik = new Chart(lõuend, {
+        type: 'line',
+        data: {
+        labels: xVaartused,
+        datasets: [
+        {
+        label: 'f(x) = ' + valem,
+        data: andmed.funktsioon,
+        borderColor: '#4f6df5',
+        borderWidth: 2.5,
+        fill: false,
+        tension: 0.3,
+        pointRadius: 0
+        },
+        {
+        label: "f'(x)",
+        data: andmed.tuletis,
+        borderColor: '#ef6461',
+        borderWidth: 2.5,
+        borderDash: [6, 6],
+        fill: false,
+        pointRadius: 0
+        }
+        ]
+        },
+        options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { position: 'top' } },
+        scales: {
+        x: { title: { display: true, text: 'x' }, grid: { color: '#edf2f7' } },
+        y: { title: { display: true, text: 'y' }, grid: { color: '#edf2f7' } }
+        }
+        }
+        });}
+
+        document.getElementById('joonistaNupp').addEventListener('click', joonistaGraafik);
+        joonistaGraafik();
+    </script>
+}
