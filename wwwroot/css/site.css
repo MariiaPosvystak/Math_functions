@@ -160,3 +160,170 @@ dd {
     color: var(--hele-tekst);
     border-top: 1px solid var(--joon);
 }
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f6fb;
+    color: #202438;
+}
+
+.page {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+.header {
+    margin-bottom: 25px;
+}
+
+    .header h1 {
+        margin-bottom: 8px;
+        font-size: 30px;
+    }
+
+    .header p {
+        color: #6b7280;
+    }
+
+.card {
+    background: white;
+    border-radius: 18px;
+    padding: 25px;
+    margin-bottom: 22px;
+    box-shadow: 0 5px 25px rgba(30, 40, 80, 0.06);
+}
+
+.input-label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+
+.formula-input {
+    width: 100%;
+    padding: 20px;
+    border: 2px solid #dce1ed;
+    border-radius: 12px;
+    font-size: 23px;
+    outline: none;
+}
+
+    .formula-input:focus {
+        border-color: #5b63e8;
+    }
+
+.hint {
+    margin-top: 10px;
+    color: #777f91;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.examples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.example {
+    padding: 8px 12px;
+    border: 1px solid #dce1ed;
+    border-radius: 8px;
+    background: #f8f9fd;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+    .example:hover {
+        background: #e9ebff;
+        border-color: #8b91f3;
+    }
+
+.analyze-button {
+    margin-top: 18px;
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 10px;
+    background: #5b63e8;
+    color: white;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+    .analyze-button:hover {
+        background: #454dcc;
+    }
+
+.results {
+    display: none;
+}
+
+.result-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 15px;
+}
+
+.result-item {
+    padding: 18px;
+    border: 1px solid #e7eaf2;
+    border-radius: 12px;
+    min-width: 0;
+}
+
+    .result-item h3 {
+        margin: 0 0 10px;
+        color: #555ed5;
+        font-size: 15px;
+    }
+
+    .result-item p {
+        margin: 0;
+        overflow-wrap: anywhere;
+        line-height: 1.6;
+    }
+
+.graph-container {
+    height: 430px;
+    position: relative;
+}
+
+.error {
+    display: none;
+    margin-top: 15px;
+    padding: 12px;
+    background: #fff0f0;
+    color: #b42318;
+    border-radius: 8px;
+}
+
+@media (max-width: 650px) {
+    .page {
+        margin: 15px auto;
+        padding: 12px;
+    }
+
+    .card {
+        padding: 18px;
+    }
+
+    .result-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .formula-input {
+        font-size: 19px;
+    }
+
+    .graph-container {
+        height: 320px;
+    }
+}

@@ -1,8 +1,484 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Funktsioonide kalkulaator";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Funktsioonide uurimine</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/mathjs@13.2.0/lib/browser/math.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <main class="page">
+        <header class="header">
+            <h1>Funktsioonide uurimine</h1>
+            <p>Sisesta matemaatiline funktsioon ja uuri selle omadusi.</p>
+        </header>
+
+        <section class="card">
+            <form id="calculatorForm">
+                <label class="input-label" for="formula">
+                    Sisesta funktsioon f(x)
+                </label>
+
+                <input id="formula"
+                       class="formula-input"
+                       type="text"
+                       placeholder="Näiteks: x^3 - 3*x"
+                       autocomplete="off"
+                       spellcheck="false"
+                       required />
+
+                <div class="hint">
+                    Kasuta muutujana x-i, astme märgina ^ ja korrutamiseks *.
+                    Näited: x^2, 2*x+3, sin(x), sqrt(x), 1/x.
+                </div>
+
+                <div class="examples">
+                    <button type="button" class="example" data-formula="x^2">
+                        x^2
+                    </button>
+                    <button type="button" class="example" data-formula="x^3 - 3*x">
+                        x^3 - 3*x
+                    </button>
+                    <button type="button" class="example" data-formula="x^2 - 4">
+                        x^2 - 4
+                    </button>
+                    <button type="button" class="example" data-formula="sin(x)">
+                        sin(x)
+                    </button>
+                    <button type="button" class="example" data-formula="1/x">
+                        1/x
+                    </button>
+                </div>
+
+                <button class="analyze-button" type="submit">
+                    Uuri funktsiooni
+                </button>
+
+                <div id="error" class="error"></div>
+            </form>
+        </section>
+
+        <section id="results" class="results">
+            <div class="card">
+                <h2>Uurimise tulemused</h2>
+
+                <div class="result-grid">
+                    <div class="result-item">
+                        <h3>Algne funktsioon</h3>
+                        <p id="originalFunction"></p>
+                    </div>
+
+                    <div class="result-item">
+                        <h3>Tuletis f'(x)</h3>
+                        <p id="derivative"></p>
+                    </div>
+
+                    <div class="result-item">
+                        <h3>Määramispiirkond</h3>
+                        <p id="domain"></p>
+                    </div>
+
+                    <div class="result-item">
+                        <h3>Nullkohad</h3>
+                        <p id="zeros"></p>
+                    </div>
+
+                    <div class="result-item">
+                        <h3>Kriitilised punktid</h3>
+                        <p id="critical"></p>
+                    </div>
+
+                    <div class="result-item">
+                        <h3>Ekstreemumid</h3>
+                        <p id="extrema"></p>
+                    </div>
+
+                    <div class="result-item">
+                        <h3>Kasvamisvahemikud</h3>
+                        <p id="increasing"></p>
+                    </div>
+
+                    <div class="result-item">
+                        <h3>Kahanemisvahemikud</h3>
+                        <p id="decreasing"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Funktsiooni graafik</h2>
+                <p class="hint">
+                    Sinine joon tähistab f(x) ja oranž punktiirjoon f'(x).
+                </p>
+                <div class="graph-container">
+                    <canvas id="functionChart"></canvas>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const formulaInput = document.getElementById("formula");
+        const form = document.getElementById("calculatorForm");
+        const errorBox = document.getElementById("error");
+        const results = document.getElementById("results");
+
+        let chart = null;
+
+        document.querySelectorAll(".example").forEach(button => {
+            button.addEventListener("click", () => {
+                formulaInput.value = button.dataset.formula;
+                formulaInput.focus();
+            });
+        });
+
+        form.addEventListener("submit", event => {
+            event.preventDefault();
+            analyzeFunction();
+        });
+
+        function formatNumber(value) {
+            if (!Number.isFinite(value)) return "määramata";
+            if (Math.abs(value) < 1e-8) return "0";
+            return Number(value.toFixed(4)).toString();
+        }
+
+        function evaluate(node, x) {
+            try {
+                const value = node.evaluate({ x });
+
+                if (typeof value !== "number" || !Number.isFinite(value)) {
+                    return NaN;
+                }
+
+                return value;
+            } catch {
+                return NaN;
+            }
+        }
+
+        function findRoots(node, start, end, step) {
+            const roots = [];
+            let previousX = start;
+            let previousY = evaluate(node, previousX);
+
+            for (let x = start + step; x <= end; x += step) {
+                const y = evaluate(node, x);
+
+                if (Number.isFinite(previousY) &&
+                    Number.isFinite(y)) {
+
+                    if (Math.abs(previousY) < 1e-7) {
+                        roots.push(previousX);
+                    } else if (previousY * y < 0) {
+                        let left = previousX;
+                        let right = x;
+                        let leftY = previousY;
+
+                        for (let i = 0; i < 45; i++) {
+                            const middle = (left + right) / 2;
+                            const middleY = evaluate(node, middle);
+
+                            if (!Number.isFinite(middleY)) break;
+
+                            if (Math.abs(middleY) < 1e-10) {
+                                left = middle;
+                                right = middle;
+                                break;
+                            }
+
+                            if (leftY * middleY <= 0) {
+                                right = middle;
+                            } else {
+                                left = middle;
+                                leftY = middleY;
+                            }
+                        }
+
+                        roots.push((left + right) / 2);
+                    }
+                }
+
+                previousX = x;
+                previousY = y;
+            }
+
+            if (Number.isFinite(previousY) && Math.abs(previousY) < 1e-7) {
+                roots.push(previousX);
+            }
+
+            return roots.filter((root, index, array) =>
+                array.findIndex(item => Math.abs(item - root) < 0.01) === index
+            );
+        }
+
+        function formatPoints(points) {
+            if (points.length === 0) {
+                return "Uurimisvahemikus ei leitud.";
+            }
+
+            return points
+                .map(x => "x ≈ " + formatNumber(x))
+                .join("; ");
+        }
+
+        function analyzeFunction() {
+            errorBox.style.display = "none";
+
+            const formula = formulaInput.value.trim();
+
+            if (!formula) {
+                showError("Sisesta funktsioon.");
+                return;
+            }
+
+            try {
+                const node = math.parse(formula);
+                const compiled = node.compile();
+
+                // Kontrollime, kas avaldist saab arvutada.
+                evaluate(compiled, 1);
+
+                let derivativeNode;
+
+                try {
+                    derivativeNode = math.derivative(node, "x").compile();
+                } catch {
+                    derivativeNode = null;
+                }
+
+                const start = -10;
+                const end = 10;
+                const step = 0.05;
+
+                const zeros = findRoots(compiled, start, end, step);
+
+                let criticalPoints = [];
+                let extrema = [];
+
+                if (derivativeNode) {
+                    criticalPoints = findRoots(
+                        derivativeNode,
+                        start,
+                        end,
+                        step
+                    );
+
+                    extrema = criticalPoints.map(x => {
+                        const y = evaluate(compiled, x);
+                        const delta = 0.01;
+
+                        const left = evaluate(compiled, x - delta);
+                        const right = evaluate(compiled, x + delta);
+
+                        let type = "tüüp määramata";
+
+                        if (Number.isFinite(left) &&
+                            Number.isFinite(right)) {
+                            if (left < y && right < y) {
+                                type = "lokaalne maksimum";
+                            } else if (left > y && right > y) {
+                                type = "lokaalne miinimum";
+                            }
+                        }
+
+                        return { x, y, type };
+                    });
+                }
+
+                document.getElementById("originalFunction").textContent =
+                    "f(x) = " + formula;
+
+                document.getElementById("derivative").textContent =
+                    derivativeNode
+                        ? "f'(x) = " + math.derivative(node, "x").toString()
+                        : "Tuletist ei õnnestunud leida.";
+
+                document.getElementById("domain").textContent =
+                    "Arvuliselt uuritakse vahemikku [" + start + "; " + end +
+                    "]. Täpne määramispiirkond ei ole automaatselt tõestatud.";
+
+                document.getElementById("zeros").textContent =
+                    formatPoints(zeros);
+
+                document.getElementById("critical").textContent =
+                    formatPoints(criticalPoints);
+
+                document.getElementById("extrema").textContent =
+                    extrema.length
+                        ? extrema.map(point =>
+                            `${point.type}: (${formatNumber(point.x)}; ${formatNumber(point.y)})`
+                        ).join("; ")
+                        : "Uurimisvahemikus ekstreemumeid ei leitud.";
+
+                const intervals = getMonotonicIntervals(
+                    derivativeNode,
+                    start,
+                    end
+                );
+
+                document.getElementById("increasing").textContent =
+                    intervals.increasing;
+
+                document.getElementById("decreasing").textContent =
+                    intervals.decreasing;
+
+                drawChart(compiled, derivativeNode, start, end);
+
+                results.style.display = "block";
+                results.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+            } catch {
+                showError(
+                    "Funktsiooni ei õnnestunud arvutada. Kontrolli valemi kirjapilti. " +
+                    "Näiteks: x^2 - 4 või sin(x)."
+                );
+            }
+        }
+
+        function getMonotonicIntervals(derivativeNode, start, end) {
+            if (!derivativeNode) {
+                return {
+                    increasing: "Pole saadaval.",
+                    decreasing: "Pole saadaval."
+                };
+            }
+
+            const increasing = [];
+            const decreasing = [];
+            const step = 0.1;
+
+            let intervalStart = start;
+            let previousSign = Math.sign(evaluate(derivativeNode, start));
+
+            for (let x = start + step; x <= end; x += step) {
+                const value = evaluate(derivativeNode, x);
+                const sign = Number.isFinite(value) ? Math.sign(value) : 0;
+
+                if (sign !== previousSign || sign === 0) {
+                    if (previousSign > 0) {
+                        increasing.push(
+                            `[${formatNumber(intervalStart)}; ${formatNumber(x)}]`
+                        );
+                    } else if (previousSign < 0) {
+                        decreasing.push(
+                            `[${formatNumber(intervalStart)}; ${formatNumber(x)}]`
+                        );
+                    }
+
+                    intervalStart = x;
+                    previousSign = sign;
+                }
+            }
+
+            if (previousSign > 0) {
+                increasing.push(`[${formatNumber(intervalStart)}; ${end}]`);
+            } else if (previousSign < 0) {
+                decreasing.push(`[${formatNumber(intervalStart)}; ${end}]`);
+            }
+
+            return {
+                increasing: increasing.length
+                    ? increasing.join(", ")
+                    : "Uurimisvahemikus ei leitud.",
+                decreasing: decreasing.length
+                    ? decreasing.join(", ")
+                    : "Uurimisvahemikus ei leitud."
+            };
+        }
+
+        function drawChart(node, derivativeNode, start, end) {
+            const labels = [];
+            const functionData = [];
+            const derivativeData = [];
+
+            for (let x = start; x <= end; x += 0.1) {
+                const roundedX = Number(x.toFixed(2));
+                labels.push(roundedX);
+                functionData.push(evaluate(node, roundedX));
+
+                derivativeData.push(
+                    derivativeNode
+                        ? evaluate(derivativeNode, roundedX)
+                        : NaN
+                );
+            }
+
+            const context = document
+                .getElementById("functionChart")
+                .getContext("2d");
+
+            if (chart) {
+                chart.destroy();
+            }
+
+            chart = new Chart(context, {
+                type: "line",
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: "f(x)",
+                            data: functionData,
+                            borderColor: "#5b63e8",
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            spanGaps: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: "f'(x)",
+                            data: derivativeData,
+                            borderColor: "#ef8b43",
+                            borderWidth: 2,
+                            borderDash: [6, 5],
+                            pointRadius: 0,
+                            spanGaps: false,
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: "index"
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: "x"
+                            },
+                            ticks: {
+                                maxTicksLimit: 11
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: "y"
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function showError(message) {
+            errorBox.textContent = message;
+            errorBox.style.display = "block";
+        }
+    </script>
+</body>
+</html>
